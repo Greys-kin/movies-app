@@ -51,7 +51,7 @@ function RatedMovies() {
 
   useEffect(() => {
     getRatedMoviesFromLocalStorage();
-  }, [currentPage]);
+  }, [currentPage, movieList]);
 
   if (error) return <Alert message="Error" description={error} type="error" showIcon />;
 

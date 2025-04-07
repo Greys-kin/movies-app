@@ -105,7 +105,7 @@ const Movie = ({ movie, guestSessionId }) => {
       setRating(savedRatings[movie.id]);
     }
     getGenres();
-  }, [movie]);
+  }, [movie, rating]);
 
   if (error) return <Alert message="Error" description={error} type="error" showIcon />;
 
