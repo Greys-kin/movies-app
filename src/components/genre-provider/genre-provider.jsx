@@ -12,7 +12,8 @@ export const GenreProvider = ({ children }) => {
         method: 'GET',
         headers: {
           accept: 'application/json',
-          Authorization: 'Bearer YOUR_API_KEY_HERE',
+          Authorization:
+            'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyOTE3NTgxM2YyOWI3NGJkZTUwMWZmN2Y4ZDA4NDdiMCIsIm5iZiI6MTc0MTkwNDE4NS42NzUsInN1YiI6IjY3ZDM1OTM5MDBjODVjNWEyODY0ZTIwNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.IPu-yc8g0WyZMAj2pqSbBeeYGqB6qEpHRpJrRfrCuN0',
         },
       };
       try {
