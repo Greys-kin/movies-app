@@ -5,6 +5,8 @@ import '../movie-list/movie-list.css';
 
 import Movie from '../movie/movie';
 
+const moviesPerPage = 20;
+
 function RatedMovies() {
   const [movieList, setMovieList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,12 +48,23 @@ function RatedMovies() {
 
   const pageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const handleUpdateEvent = () => {
     getRatedMoviesFromLocalStorage();
   };
 
   useEffect(() => {
     getRatedMoviesFromLocalStorage();
-  }, [currentPage, movieList]);
+
+    window.addEventListener('ratedMoviesUpdated', handleUpdateEvent);
+
+    return () => {
+      window.removeEventListener('ratedMoviesUpdated', handleUpdateEvent);
+    };
+  }, []);
+
+  const paginatedMovies = movieList.slice((currentPage - 1) * moviesPerPage, currentPage * moviesPerPage);
 
   if (error) return <Alert message="Error" description={error} type="error" showIcon />;
 
@@ -63,12 +76,12 @@ function RatedMovies() {
         </Flex>
       ) : (
         <ul className="movie-list">
-          {movieList.map((movie) => (
+          {paginatedMovies.map((movie) => (
             <Movie key={movie.id} movie={movie} movieId={movie.id} />
           ))}
         </ul>
       )}
-      <Pagination current={currentPage} pageSize={20} total={totalResults} onChange={pageChange} />
+      <Pagination current={currentPage} pageSize={moviesPerPage} total={totalResults} onChange={pageChange} />
     </>
   );
 }

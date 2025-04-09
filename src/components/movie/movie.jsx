@@ -1,8 +1,8 @@
-import { React, useState, useEffect } from 'react';
+import { React, useState, useEffect, useContext } from 'react';
 import { Card, Typography, Rate, Alert } from 'antd';
 import { format } from 'date-fns';
 
-// import Genre from './genre';
+import { GenreContext } from '../genre-provider/genre-provider';
 
 import './movie.css';
 
@@ -17,30 +17,10 @@ function getRatingColor(voteAverage) {
 }
 
 const Movie = ({ movie, guestSessionId }) => {
+  const { genres } = useContext(GenreContext);
   const ratingColor = getRatingColor(movie.vote_average);
-  const [genres, setGenres] = useState([]);
   const [error, setError] = useState(null);
-  const [rating, setRating] = useState(1);
-
-  const getGenres = () => {
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyOTE3NTgxM2YyOWI3NGJkZTUwMWZmN2Y4ZDA4NDdiMCIsIm5iZiI6MTc0MTkwNDE4NS42NzUsInN1YiI6IjY3ZDM1OTM5MDBjODVjNWEyODY0ZTIwNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.IPu-yc8g0WyZMAj2pqSbBeeYGqB6qEpHRpJrRfrCuN0',
-      },
-    };
-    fetch('https://api.themoviedb.org/3/genre/movie/list?language=en', options)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Сетевая ошибка');
-        }
-        return res.json();
-      })
-      .then((json) => setGenres(json.genres))
-      .catch(() => setError('Ошибка при получении данных о жанрах'));
-  };
+  const [rating, setRating] = useState(null);
 
   const movieGenres = movie.genre_ids
     ? movie.genre_ids
@@ -49,17 +29,14 @@ const Movie = ({ movie, guestSessionId }) => {
           return genre ? genre.name : null;
         })
         .filter(Boolean)
-    : movie.genres
-        .map((id) => {
-          const genre = genres.find((g) => g.id === id);
-          return genre ? genre.name : null;
-        })
-        .filter(Boolean);
+    : movie.genres.map((genre) => genre.name);
 
   const saveRatingToLocalStorage = (movieId, ratingValue) => {
     const savedRatings = JSON.parse(localStorage.getItem('ratedMovies')) || {};
     savedRatings[movieId] = ratingValue;
     localStorage.setItem('ratedMovies', JSON.stringify(savedRatings));
+
+    window.dispatchEvent(new Event('ratedMoviesUpdated'));
   };
 
   const rateMovie = (movieId, rating) => {
@@ -104,7 +81,6 @@ const Movie = ({ movie, guestSessionId }) => {
     if (savedRatings[movie.id]) {
       setRating(savedRatings[movie.id]);
     }
-    getGenres();
   }, [movie, rating]);
 
   if (error) return <Alert message="Error" description={error} type="error" showIcon />;

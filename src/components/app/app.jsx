@@ -5,6 +5,7 @@ import { Offline, Online } from 'react-detect-offline';
 import './app.css';
 import MovieList from '../movie-list';
 import RatedMovies from '../rated-movies/rated-movies';
+import { GenreProvider } from '../genre-provider/genre-provider';
 
 function App() {
   const tabName = ['Search', 'Rated'];
@@ -20,7 +21,6 @@ function App() {
           'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyOTE3NTgxM2YyOWI3NGJkZTUwMWZmN2Y4ZDA4NDdiMCIsIm5iZiI6MTc0MTkwNDE4NS42NzUsInN1YiI6IjY3ZDM1OTM5MDBjODVjNWEyODY0ZTIwNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.IPu-yc8g0WyZMAj2pqSbBeeYGqB6qEpHRpJrRfrCuN0',
       },
     };
-    // const API_KEY = '29175813f29b74bde501ff7f8d0847b0';
     const url = 'https://api.themoviedb.org/3/authentication/guest_session/new';
 
     fetch(url, options)
@@ -53,9 +53,13 @@ function App() {
               key: id,
               children:
                 i === 0 ? (
-                  <MovieList guestSessionId={guestSessionId} />
+                  <GenreProvider>
+                    <MovieList guestSessionId={guestSessionId} />
+                  </GenreProvider>
                 ) : (
-                  <RatedMovies guestSessionId={guestSessionId} />
+                  <GenreProvider>
+                    <RatedMovies guestSessionId={guestSessionId} />
+                  </GenreProvider>
                 ),
             };
           })}
