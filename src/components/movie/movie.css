@@ -16,6 +16,17 @@
   background-size: cover;
 }
 
+.ant-card-cover {
+  width: 183px !important;
+  display: flex;
+}
+
+.cover-noImage {
+  font-size: 16px !important;
+  text-align: center;
+  align-self: center;
+}
+
 .ant-typography {
   display: block;
   font-size: 12px;

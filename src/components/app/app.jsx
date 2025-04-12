@@ -11,6 +11,7 @@ function App() {
   const tabName = ['Search', 'Rated'];
   const [guestSessionId, setGuestSessionId] = useState(null);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('1');
 
   const createGuestSession = () => {
     const options = {
@@ -45,6 +46,8 @@ function App() {
       <Online>
         <Tabs
           defaultActiveKey="1"
+          activeKey={activeTab}
+          onChange={setActiveTab}
           centered
           items={Array.from({ length: 2 }).map((_, i) => {
             const id = String(i + 1);
@@ -54,11 +57,11 @@ function App() {
               children:
                 i === 0 ? (
                   <GenreProvider>
-                    <MovieList guestSessionId={guestSessionId} />
+                    <MovieList key={activeTab} guestSessionId={guestSessionId} />
                   </GenreProvider>
                 ) : (
                   <GenreProvider>
-                    <RatedMovies guestSessionId={guestSessionId} />
+                    <RatedMovies key={activeTab} guestSessionId={guestSessionId} />
                   </GenreProvider>
                 ),
             };

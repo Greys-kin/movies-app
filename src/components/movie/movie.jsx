@@ -1,4 +1,4 @@
-import { React, useState, useEffect, useContext } from 'react';
+import { React, useState, useContext } from 'react';
 import { Card, Typography, Rate, Alert } from 'antd';
 import { format } from 'date-fns';
 
@@ -20,7 +20,7 @@ const Movie = ({ movie, guestSessionId }) => {
   const { genres } = useContext(GenreContext);
   const ratingColor = getRatingColor(movie.vote_average);
   const [error, setError] = useState(null);
-  const [rating, setRating] = useState(null);
+  const [rating, setRating] = useState(movie.rating || null);
 
   const movieGenres = movie.genre_ids
     ? movie.genre_ids
@@ -31,34 +31,22 @@ const Movie = ({ movie, guestSessionId }) => {
         .filter(Boolean)
     : movie.genres.map((genre) => genre.name);
 
-  const saveRatingToLocalStorage = (movieId, ratingValue) => {
-    const savedRatings = JSON.parse(localStorage.getItem('ratedMovies')) || {};
-    savedRatings[movieId] = ratingValue;
-    localStorage.setItem('ratedMovies', JSON.stringify(savedRatings));
-
-    window.dispatchEvent(new Event('ratedMoviesUpdated'));
-  };
-
   const rateMovie = (movieId, rating) => {
     const options = {
       method: 'POST',
       headers: {
         accept: 'application/json',
         'Content-Type': 'application/json;charset=utf-8',
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyOTE3NTgxM2YyOWI3NGJkZTUwMWZmN2Y4ZDA4NDdiMCIsIm5iZiI6MTc0MTkwNDE4NS42NzUsInN1YiI6IjY3ZDM1OTM5MDBjODVjNWEyODY0ZTIwNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.IPu-yc8g0WyZMAj2pqSbBeeYGqB6qEpHRpJrRfrCuN0',
       },
-      body: JSON.stringify({
-        value: rating,
-      }),
+      body: `{"value":${rating}}`,
     };
 
-    fetch(
-      `https://api.themoviedb.org/3/movie/${movieId}/rating?api_key=29175813f29b74bde501ff7f8d0847b0&guest_session_id=${guestSessionId}`,
-      options
-    )
+    fetch(`https://api.themoviedb.org/3/movie/${movieId}/rating?guest_session_id=${guestSessionId}`, options)
       .then((res) => res.json())
       .then(() => {
         setRating(rating);
-        saveRatingToLocalStorage(movieId, rating);
       })
       .catch((err) => setError('Ошибка:', err));
   };
@@ -76,18 +64,21 @@ const Movie = ({ movie, guestSessionId }) => {
     }
     return 'Дата недоступна';
   };
-  useEffect(() => {
-    const savedRatings = JSON.parse(localStorage.getItem('ratedMovies')) || {};
-    if (savedRatings[movie.id]) {
-      setRating(savedRatings[movie.id]);
-    }
-  }, [movie, rating]);
 
   if (error) return <Alert message="Error" description={error} type="error" showIcon />;
 
   return (
     <li>
-      <Card hoverable cover={<img alt={movie.title} src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} />}>
+      <Card
+        hoverable
+        cover={
+          movie.poster_path ? (
+            <img alt={movie.title} src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} />
+          ) : (
+            <Text className="cover-noImage">No Image</Text>
+          )
+        }
+      >
         <Title level={5}>{movie.title}</Title>
         <span className="rating-circle" style={{ borderColor: ratingColor }}>
           {movie.vote_average.toFixed(1)}
@@ -103,7 +94,11 @@ const Movie = ({ movie, guestSessionId }) => {
           <Text code>No genres</Text>
         )}
         <Paragraph className="paragraph">{movie.overview}</Paragraph>
-        <Rate allowHalf count={10} value={rating} style={{ fontSize: 15 }} onChange={rateChange} />
+        {!rating ? (
+          <Rate allowHalf count={10} value={rating} style={{ fontSize: 15 }} onChange={rateChange} />
+        ) : (
+          <Rate allowHalf count={10} value={rating} style={{ fontSize: 15 }} />
+        )}
       </Card>
     </li>
   );

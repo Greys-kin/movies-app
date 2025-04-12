@@ -7,76 +7,53 @@ import Movie from '../movie/movie';
 
 const moviesPerPage = 20;
 
-function RatedMovies() {
+function RatedMovies({ guestSessionId }) {
   const [movieList, setMovieList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
 
-  const getRatedMoviesFromLocalStorage = () => {
-    const savedMovies = JSON.parse(localStorage.getItem('ratedMovies')) || {};
-    const movieIds = Object.keys(savedMovies);
-
-    if (movieIds.length === 0) {
-      setMovieList([]);
-      setTotalResults(0);
-      setLoading(false);
-      return;
-    }
-    const fetchMovies = movieIds.map((id) =>
-      fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=29175813f29b74bde501ff7f8d0847b0&language=en-US`)
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error('Ошибка сети');
-          }
-          return res.json();
-        })
-        .then((movieData) => {
-          return movieData;
-        })
-    );
-
-    Promise.all(fetchMovies)
-      .then((moviesArray) => {
-        setMovieList(moviesArray);
-        setTotalResults(moviesArray.length);
+  const fetchRatedMovies = (page = 1) => {
+    const options = {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        Authorization:
+          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyOTE3NTgxM2YyOWI3NGJkZTUwMWZmN2Y4ZDA4NDdiMCIsIm5iZiI6MTc0MTkwNDE4NS42NzUsInN1YiI6IjY3ZDM1OTM5MDBjODVjNWEyODY0ZTIwNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.IPu-yc8g0WyZMAj2pqSbBeeYGqB6qEpHRpJrRfrCuN0',
+      },
+    };
+    fetch(
+      `https://api.themoviedb.org/3/guest_session/${guestSessionId}/rated/movies?language=en-US&page=${page}&sort_by=created_at.asc`,
+      options
+    )
+      .then((res) => res.json())
+      .then((res) => {
+        setMovieList(res.results);
+        setTotalResults(res.total_results);
       })
       .catch(() => setError('Ошибка при получении данных о фильмах'))
       .finally(() => setLoading(false));
   };
-
   const pageChange = (page) => {
     setCurrentPage(page);
   };
 
-  const handleUpdateEvent = () => {
-    getRatedMoviesFromLocalStorage();
-  };
-
   useEffect(() => {
-    getRatedMoviesFromLocalStorage();
-
-    window.addEventListener('ratedMoviesUpdated', handleUpdateEvent);
-
-    return () => {
-      window.removeEventListener('ratedMoviesUpdated', handleUpdateEvent);
-    };
-  }, []);
-
-  const paginatedMovies = movieList.slice((currentPage - 1) * moviesPerPage, currentPage * moviesPerPage);
+    fetchRatedMovies(currentPage);
+  }, [currentPage, guestSessionId]);
 
   if (error) return <Alert message="Error" description={error} type="error" showIcon />;
 
   return (
     <>
-      {loading ? (
+      {loading || !movieList ? (
         <Flex className="flex" justify="center" align="center">
           <Spin size="large" />
         </Flex>
       ) : (
         <ul className="movie-list">
-          {paginatedMovies.map((movie) => (
+          {movieList.map((movie) => (
             <Movie key={movie.id} movie={movie} movieId={movie.id} />
           ))}
         </ul>

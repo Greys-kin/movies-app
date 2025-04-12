@@ -43,9 +43,9 @@ function MovieList({ guestSessionId }) {
   };
 
   const debouncedGetMovies = useCallback(
-    debounce((query) => {
-      getMovie(currentPage, query);
-      setCurrentPage(1);
+    debounce((page, query) => {
+      getMovie(page, query);
+      setCurrentPage(page);
     }, 500),
     []
   );
@@ -53,7 +53,13 @@ function MovieList({ guestSessionId }) {
   const searchChange = (e) => {
     const value = e.target.value;
     setSearch(value);
-    debouncedGetMovies(value);
+    if (value === '') {
+      setCurrentPage(1);
+      getMovie(currentPage);
+    } else {
+      setCurrentPage(1);
+      debouncedGetMovies(currentPage, value);
+    }
   };
 
   const pageChange = (page) => {
@@ -62,12 +68,10 @@ function MovieList({ guestSessionId }) {
   };
 
   useEffect(() => {
-    getMovie(currentPage);
-  }, [currentPage]);
-
-  useEffect(() => {
     if (search) {
-      getMovie(currentPage, search);
+      debouncedGetMovies(currentPage, search);
+    } else {
+      getMovie(currentPage);
     }
   }, [currentPage, search]);
 
